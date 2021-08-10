@@ -3,25 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class InputController : MonoBehaviour
 {
-	private static InputController instance;
-	public static InputController Instance{
-		get { return instance; }
-	}
-
 	private static GameInputs gameInputs;
 
-
+	public UnityEvent confirmEvent;
+	public UnityEvent cancelEvent;
+	public UnityEvent directionEvent;
 
 	private void Awake() {
-		if (instance == null) {
-			instance = this;
-		}
-		else if(instance != this) {
-			Destroy(this.gameObject);
-		}
+		GameController.inputController = this;
 		GenerateInputs();
 	}
 
@@ -47,6 +40,9 @@ public class InputController : MonoBehaviour
 		gameInputs = new GameInputs();
 		//gameInputs.Player.LightPunch.performed += _ => player1Controller.PerformLightPunch();
 		//gameInputs.Player.HeavyPunch.performed += _ => player1Controller.PerformHeavyPunch();
-		gameInputs.Menu.Confirm.performed += _ => GameController.Instance.StartButtonPressed();
+		//gameInputs.Menu.Confirm.performed += _ => GameController.Instance.StartButtonPressed();
+		gameInputs.Menu.Confirm.performed += _ => confirmEvent.Invoke();
+		gameInputs.Menu.Cancel.performed += _ => cancelEvent.Invoke();
+		
 	}
 }

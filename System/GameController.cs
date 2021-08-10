@@ -16,11 +16,12 @@ public class GameController : MonoBehaviour
 	public static GameController Instance{
 		get { return instance; }
 	}
+	public static InputController inputController;
 	public static UIManager uiManager;
 	public static CombatManager combatManager;
 	public static GameCamera gameCamera;
 
-	private static GameMode gameMode;
+	private static GameMode gameMode = GameMode.Title;
 
 	private static bool gamePaused;
 	private static float pausedTimeScale = 1;
@@ -37,7 +38,6 @@ public class GameController : MonoBehaviour
 	}
 
 	private void Start() {
-		gameMode = GameMode.Title;
 		InitGame();
 	}
 
@@ -45,21 +45,7 @@ public class GameController : MonoBehaviour
 	{
 	}
 
-	public void StartButtonPressed()
-	{
-		switch(gameMode)
-		{
-			case GameMode.Title:
-				SceneManager.LoadScene(1);
-				gameMode = GameMode.Versus;
-				break;
-			case GameMode.Versus:
-				combatManager.MatchStart();
-				break;
-
-		}
-		
-	}
+	
 
 	public void RestartGame()
 	{
@@ -88,5 +74,14 @@ public class GameController : MonoBehaviour
 	public static bool GamePaused()
 	{
 		return gamePaused;
+	}
+
+	public static void SetGameMode(GameMode game_mode)
+	{
+		gameMode = game_mode;
+	}
+	public static GameMode GetGameMode()
+	{
+		return gameMode;
 	}
 }

@@ -7,7 +7,6 @@ public class HPParticles : MonoBehaviour
 	[SerializeField]
 	PixelParticle particlePrefab;
 
-	const float pixelWidth = 0.0625f;
 	[SerializeField]
 	Color hpColor;
 
@@ -20,7 +19,7 @@ public class HPParticles : MonoBehaviour
 			{
 				if(i < 3 && j > i)
 					continue;
-				Vector3 offset = new Vector3(i*pixelWidth, j*pixelWidth);
+				Vector3 offset = new Vector3(i*PixelParticle.PixelWidth, j*PixelParticle.PixelWidth);
 				Vector3 pos = new Vector3((basePos.x + offset.x)*side.ToInt(), basePos.y + offset.y, -1);
 				PixelParticle px = Instantiate(particlePrefab, pos, Quaternion.identity, transform) as PixelParticle;
 				px.SetColor(hpColor);

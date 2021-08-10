@@ -4,15 +4,21 @@ using UnityEngine;
 
 public class CombatParticles : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+	[SerializeField]
+	PixelParticle particlePrefab;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+
+	public void CreateBurstAtPosition(Vector3 pos, Vector3 angle, Color color)
+	{
+		for(int i = 0; i < 10; i++)
+		{
+			PixelParticle px = Instantiate(particlePrefab, pos, Quaternion.identity, transform) as PixelParticle;
+			px.SetColor(color);
+
+			Vector3 vel = angle.normalized;
+			vel.y += i;
+			float force = 6;
+			px.Launch(force, vel);
+		}
+	}
 }

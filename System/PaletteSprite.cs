@@ -4,9 +4,8 @@ using UnityEngine;
 
 public enum PaletteIndex{
 	DEBUG		= 0,
-	Black		= 0,
-	Red			= 1,
-	Green		= 2,
+	Player1		= 1,
+	Player2		= 2,
 	Blue		= 3,
 	Natural		= 14,
 	RedRamp		= 15,
@@ -18,13 +17,13 @@ public class PaletteSprite : MonoBehaviour
 	SpriteRenderer _spriteRenderer{
 		get { return GetComponent<SpriteRenderer>(); }
 	}
-	public Texture2D paletteTex;
+	private Texture2D paletteTex;
 	private Color[] mSpriteColors;
 
 	const float flashDuration = 0.1f;
 	float flashTimer;
 
-	public PaletteIndex pIndex;
+	PaletteIndex pIndex;
 //	public Texture2D
 
 	// Start is called before the first frame update

@@ -60,6 +60,11 @@ public class PlayerController : MonoBehaviour
 		hpBar = hpbar;
 	}
 
+	public void SetPalette(PaletteIndex palette)
+	{
+		GetComponentInChildren<PaletteSprite>().SetPalette(palette);
+	}
+
 	public void ResetPlayer()
 	{
 		stunTimer = 0;

@@ -10,6 +10,7 @@ public class PixelParticle : MonoBehaviour
 	SpriteRenderer _spriteRenderer{
 		get { return GetComponent<SpriteRenderer>(); }
 	}
+	public static readonly float PixelWidth = 0.0625f;
 	const float lifeTime = 1.5f;
 	float timeAlive = 0;
 

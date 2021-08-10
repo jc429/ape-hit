@@ -104,6 +104,8 @@ public class CombatManager : MonoBehaviour
 		hit.attacker.GetHitboxManager().DisableAllHitboxes();
 		PlayerController targetObj = hit.target.owner;
 		targetObj.ReceiveHit(hit);
+		Vector3 burstDir = targetObj.transform.position - hit.attacker.transform.position;
+		_combatParticles.CreateBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
 		if(targetObj.IsDead())
 		{
 			winners.Add(hit.attacker);
@@ -167,12 +169,14 @@ public class CombatManager : MonoBehaviour
 			player.SetActionState(ActionState.Victory);
 			player.playerID = i;
 		}
+		players[0].SetPalette(PaletteIndex.Player1);
 		players[0].transform.localPosition = p1Spawn;
 		players[0].SetHPBar(hpBarL);
 		players[0].SetOpponent(players[1]);
 		players[0].SetFacing(Direction.E);
 		players[0].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 1 Keyboard");
 
+		players[1].SetPalette(PaletteIndex.Player2);
 		players[1].transform.localPosition = p2Spawn;
 		players[1].SetHPBar(hpBarR);
 		players[1].SetOpponent(players[0]);
