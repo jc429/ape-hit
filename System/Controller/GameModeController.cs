@@ -52,9 +52,10 @@ public class GameModeController : MonoBehaviour
 			Debug.LogWarning("Hit a hurtbox without an owner!");
 			return;
 		}
+		targetObj.ReceiveHit(hit);
 		AudioController.instance.PlaySound("lightPunch");
 		Vector3 burstDir = targetObj.transform.position - hit.attacker.transform.position;
-		_combatParticles.CreateBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
+		_combatParticles?.CreateBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
 		
 		StartCoroutine(HitStopCoroutine(hitStopDuration));
 		//Vector2 shakeVec = new Vector2(hit.attacker.GetFacing().ToInt(), 0);
