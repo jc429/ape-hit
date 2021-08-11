@@ -36,7 +36,7 @@ public class UIManager : MonoBehaviour
 
 	public void AddWin(RoundResult roundState, int winNo)
 	{
-		if(winNo >= CombatManager.RoundsToWin)
+		if(winNo >= VersusCombatManager.RoundsToWin)
 			return;
 		if(roundState == RoundResult.Draw)
 			return;
@@ -46,7 +46,7 @@ public class UIManager : MonoBehaviour
 				roundMarkers[winNo].SetMarkerState(RoundMarker.MarkerState.Victory);
 				break;
 			case RoundResult.P2Win:
-				roundMarkers[CombatManager.RoundsToWin + winNo].SetMarkerState(RoundMarker.MarkerState.Victory);
+				roundMarkers[VersusCombatManager.RoundsToWin + winNo].SetMarkerState(RoundMarker.MarkerState.Victory);
 				break;
 		}
 	}

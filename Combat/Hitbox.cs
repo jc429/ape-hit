@@ -54,7 +54,7 @@ public class Hitbox : CollisionBox
 			Hurtbox hb = col.gameObject.GetComponent<Hurtbox>();
 			if(hb.owner != owner)
 			{
-				CombatManager.RegisterAttackHit(owner, hb, baseDamage, baseHitStun, kbForce, kbAngle);
+				VersusCombatManager.RegisterAttackHit(owner, hb, baseDamage, baseHitStun, kbForce, kbAngle);
 				hit = true;
 			}
 		}

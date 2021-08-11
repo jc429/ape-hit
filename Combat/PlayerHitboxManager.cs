@@ -10,10 +10,10 @@ enum HurtboxID
 
 public class PlayerHitboxManager : MonoBehaviour
 {
+	
+
 	public Hurtbox[] hurtboxes;
 	public Hitbox[] hitboxes;
-
-
 	
 	public void CombatUpdate()
 	{

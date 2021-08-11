@@ -20,15 +20,11 @@ public enum RoundResult{
 	Draw
 }
 
-public class CombatManager : MonoBehaviour
-{
-	CombatParticles _combatParticles{
-		get { return GetComponent<CombatParticles>(); }
-	}
 
-	private static List<PlayerController> players = new List<PlayerController>();
-	public static List<AttackHit> currentHits = new List<AttackHit>();
-	private static List<PlayerController> winners = new List<PlayerController>();
+public class VersusCombatManager : GameModeController
+{
+
+
 	[SerializeField]
 	HPBar hpBarL;
 	[SerializeField]
@@ -40,27 +36,28 @@ public class CombatManager : MonoBehaviour
 	Transform playerContainer;
 
 	static RoundState roundState;
+	public static RoundState RoundState{
+		get { return roundState; }
+	}
 
 	public const int RoundsToWin = 2;
-	const float hitStopDuration =  0.125f;
 	readonly Vector3 p1Spawn = new Vector3(-1, -1);
 	readonly Vector3 p2Spawn = new Vector3(1, -1);
 	int p1RoundWins;
 	int p2RoundWins;
-	static bool gameplayPaused = false;
 
 
 
 
 	private void Awake() {
-		GameController.combatManager = this;
+		roundState = RoundState.MatchPreStart;
 	}
 
 	private void FixedUpdate() {
 
 		if(players.Count == 0)
 			return;
-		if(!gameplayPaused)
+		if(!GameplayPaused)
 		{
 			foreach(PlayerController pc in players)
 			{
@@ -83,49 +80,6 @@ public class CombatManager : MonoBehaviour
 
 
 
-	////////////
-	/// Hits ///
-	////////////
-
-	public static void RegisterAttackHit(PlayerController attacker, Hurtbox target, int dmg, int hitstun, float kbForce, Vector2 kbAngle)
-	{
-		AttackHit hit = new AttackHit(attacker, target, dmg, hitstun, kbForce, kbAngle);
-		foreach(AttackHit ah in currentHits)
-		{
-			if(ah.Matches(hit))
-				return;
-		}
-		currentHits.Add(hit);
-		//Debug.Log("Hit! " + currentHits.Count);
-	}
-
-	private void ProcessHit(AttackHit hit)
-	{
-		hit.attacker.GetHitboxManager().DisableAllHitboxes();
-		PlayerController targetObj = hit.target.owner;
-		targetObj.ReceiveHit(hit);
-		Vector3 burstDir = targetObj.transform.position - hit.attacker.transform.position;
-		_combatParticles.CreateBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
-		if(targetObj.IsDead())
-		{
-			winners.Add(hit.attacker);
-		}
-		else
-		{
-			StartCoroutine(HitStopCoroutine(hitStopDuration));
-		}
-		//Vector2 shakeVec = new Vector2(hit.attacker.GetFacing().ToInt(), 0);
-		Vector2 shakeVec = Vector2.down;
-		GameController.gameCamera.ShakeCamera(1, shakeVec);
-	}
-
-
-	private IEnumerator HitStopCoroutine(float duration)
-	{
-		Time.timeScale = 0;
-		yield return new WaitForSecondsRealtime(duration);
-		Time.timeScale = 1;
-	}
 
 	
 	private void CheckWinners()
@@ -165,7 +119,7 @@ public class CombatManager : MonoBehaviour
 			PlayerController player = Instantiate(playerPrefab) as PlayerController;
 			player.transform.parent = playerContainer;
 			players.Add(player);
-			player.SetInputsLocked(true);
+			player.AddInputLock(InputLockType.System);
 			player.SetActionState(ActionState.Victory);
 			player.playerID = i;
 		}
@@ -185,7 +139,17 @@ public class CombatManager : MonoBehaviour
 	}
 
 
+	//////////////
+	/// Combat ///
+	//////////////
 
+	protected override void HitPostProcess(AttackHit hit){
+		PlayerController playerController = hit.target.owner.GetComponent<PlayerController>();
+		if(playerController != null && playerController.IsDead())
+		{
+			winners.Add(playerController.opponent);
+		}
+	}
 
 	///////////////
 	/// Matches ///
@@ -278,12 +242,12 @@ public class CombatManager : MonoBehaviour
 		GameController.uiManager.Overlay.ShowScreen(OverlayScreen.RoundStart);
 		foreach(PlayerController p in players)
 		{
-			p.SetInputsLocked(false);
+			p.RemoveInputLock(InputLockType.System|InputLockType.RoundOver);
 		}
 		yield return new WaitForSecondsRealtime(0.5f);
 		GameController.uiManager.Overlay.HideScreen();
 		gameplayPaused = false;
-		Time.timeScale = 1;
+		UnfreezeTime(TimeFreezeSouce.ALL);
 	}
 
 	
@@ -293,8 +257,10 @@ public class CombatManager : MonoBehaviour
 		roundState = RoundState.Ended;
 		winners.Clear();
 		//Debug.Log("Round Over");
-		players[0].SetInputsLocked(true);
-		players[1].SetInputsLocked(true);
+		foreach(PlayerController p in players)
+		{
+			p.AddInputLock(InputLockType.RoundOver);
+		}
 		yield return new WaitForSecondsRealtime(1);
 		switch(roundResult)
 		{
@@ -302,8 +268,8 @@ public class CombatManager : MonoBehaviour
 			case RoundResult.P1Perfect:
 				players[0].SetActionState(ActionState.Victory);
 				players[1].SetActionState(ActionState.Dead);
-				p1RoundWins++;
 				GameController.uiManager.AddWin(RoundResult.P1Win, p1RoundWins);
+				p1RoundWins++;
 				break;
 			case RoundResult.P2Win:
 			case RoundResult.P2Perfect:
@@ -351,7 +317,12 @@ public class CombatManager : MonoBehaviour
 		players[1].transform.localPosition = p2Spawn;
 		players[0].SetFacing(Direction.E);
 		players[1].SetFacing(Direction.W);
-		Time.timeScale = 1;
+		UnfreezeTime(TimeFreezeSouce.ALL);
 		RoundStart();
 	}
+
+
+
+
+
 }

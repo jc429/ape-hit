@@ -30,7 +30,7 @@ public class PlayerAnimEvent : MonoBehaviour
 	void AttackStartup(AttackID id)
 	{
 		_playerController.SetCancelState(CancelState.NoCancel);
-		_playerMovement.SetMovementLocked(true);
+		_playerMovement.AddMoveLock(MoveLockType.Animation);
 	}
 
 	void AttackActive(AttackID id)
@@ -56,6 +56,6 @@ public class PlayerAnimEvent : MonoBehaviour
 	void AttackEnd(AttackID id)
 	{
 		SetFreeCancel();
-		_playerMovement.SetMovementLocked(false);
+		_playerMovement.RemoveMoveLock(MoveLockType.Animation);
 	}
 }

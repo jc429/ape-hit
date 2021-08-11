@@ -4,14 +4,14 @@ using UnityEngine;
 
 public class AttackHit
 {
-	public PlayerController attacker;
+	public EntityController attacker;
 	public Hurtbox target;
 	public int damage;
 	public int hitStun;
 	public float knockbackForce;
 	public Vector2 knockbackAngle;
 
-	public AttackHit(PlayerController attacker, Hurtbox target, int dmg, int hitstun, float kb_force, Vector2 kb_angle)
+	public AttackHit(EntityController attacker, Hurtbox target, int dmg, int hitstun, float kb_force, Vector2 kb_angle)
 	{
 		this.attacker = attacker;
 		this.target = target;

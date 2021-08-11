@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IHitboxResponder {
 
-	public void CollisionWith(Collider collider);
+	void ReceiveHit(AttackHit hit);
 
 }

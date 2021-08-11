@@ -3,7 +3,14 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+public enum InputLockType{
+	System			= 0x0001,
+	Pause			= 0x0002,
+	RoundOver		= 0x0004,
+	HitStun			= 0x0008,
 
+	ALL				= 0xFFFF
+}
 
 public enum CancelState{
 	FreeCancel,
@@ -12,11 +19,9 @@ public enum CancelState{
 }
 
 [SelectionBase]
-public class PlayerController : MonoBehaviour
+public class PlayerController : EntityController, IHitboxResponder
 {
-	SpriteRenderer _spriteRenderer{
-		get { return GetComponentInChildren<SpriteRenderer>(); }
-	}
+	
 	PlayerMovement _playerMovement{
 		get { return GetComponent<PlayerMovement>(); }
 	}
@@ -34,9 +39,8 @@ public class PlayerController : MonoBehaviour
 	public PlayerController opponent;
 
 	public int playerID;
-	private bool inputLocked;
+	private int inputLocks;
 	CancelState cancelState;
-	private Direction facingDir = Direction.E;
 	private Vector2Int moveInputs;
 	private ActionState currentState;
 	private int stunTimer;
@@ -71,7 +75,8 @@ public class PlayerController : MonoBehaviour
 		curHP = maxHP;
 		SetActionState(ActionState.Idle);
 		cancelState = CancelState.FreeCancel;
-		_playerMovement.SetMovementLocked(false);
+		_playerMovement.ClearMovementLocks();
+		ClearInputLocks();
 	}
 	
 	/// Updates ///
@@ -83,13 +88,13 @@ public class PlayerController : MonoBehaviour
 			stunTimer--;
 			if(stunTimer == 0)
 			{
-				_playerMovement.SetMovementLocked(false);
+				_playerMovement.RemoveMoveLock(MoveLockType.HitStun);
 			}
 		}
 		else
 		{
 			_playerMovement.GroundCheck();
-			if(!inputLocked)
+			if(!InputLocked())
 			{
 				_playerMovement.UpdateMovement(moveInputs);
 				UpdateFacing();
@@ -110,23 +115,9 @@ public class PlayerController : MonoBehaviour
 	{
 		if(opponent == null)
 			return;
-		//_spriteRenderer.flipX = (gameObject.transform.position.x > opponent.position.x);
 		SetFacing((gameObject.transform.position.x > opponent.transform.position.x) ? Direction.W : Direction.E);
 	}
 
-	public Direction GetFacing()
-	{
-		return facingDir;
-	}
-
-	public void SetFacing(Direction dir)
-	{
-		facingDir = dir;
-		Vector3 rot = Vector3.zero;
-		if(facingDir == Direction.W)
-			rot.y = 180;
-		transform.rotation = Quaternion.Euler(rot);
-	}
 
 
 
@@ -157,10 +148,18 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
-	public void ReceiveHit(AttackHit hit)
+
+	/// IHitboxResponder
+
+	public override void HitSucceedEvent()
+	{
+		_hitboxManager.DisableAllHitboxes();
+	}
+
+	public override void ReceiveHit(AttackHit hit)
 	{
 		SetActionState(ActionState.HitStun);
-		_playerMovement.SetMovementLocked(true);
+		_playerMovement.AddMoveLock(MoveLockType.HitStun);
 		Vector3 launchVel = Vector3.Normalize(hit.knockbackAngle) * hit.knockbackForce;
 		launchVel.x *= hit.attacker.GetFacing().ToInt();
 		GetComponent<Rigidbody>().velocity = launchVel;
@@ -199,16 +198,30 @@ public class PlayerController : MonoBehaviour
 
 	public bool IsDead()
 	{
-		return curHP <= 0;
+		return (curHP <= 0);
 	}
 
 
 	/// Locks ///
 
-
-	public void SetInputsLocked(bool locked)
+	public bool InputLocked()
 	{
-		inputLocked = locked;
+		return (inputLocks != 0);
+	}
+
+	public void AddInputLock(InputLockType lockType)
+	{
+		inputLocks |= (int)lockType;
+	}
+
+	public void RemoveInputLock(InputLockType lockType)
+	{
+		inputLocks &= ~(int)lockType;
+	}
+
+	void ClearInputLocks()
+	{
+		inputLocks = 0;
 	}
 
 	/// Input System ///
@@ -221,13 +234,13 @@ public class PlayerController : MonoBehaviour
 
 	public void LightPunchPressed(InputAction.CallbackContext ctx)
 	{
-		if(ctx.action.triggered && !inputLocked)
+		if(ctx.action.triggered && !InputLocked())
 			PerformLightPunch();
 	}
 
 	public void HeavyPunchPressed(InputAction.CallbackContext ctx)
 	{
-		if(ctx.action.triggered && !inputLocked)
+		if(ctx.action.triggered && !InputLocked())
 			PerformHeavyPunch();
 	}
 

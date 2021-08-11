@@ -2,6 +2,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+
+public enum MoveLockType{
+	Pause			= 0x0001,
+	Dead			= 0x0002,
+	HitStun			= 0x0004,
+	Animation		= 0x0008,
+
+	ALL				= 0xFFFF
+}
+
 public class PlayerMovement : MonoBehaviour
 {
 	PlayerController _playerController{
@@ -21,10 +32,7 @@ public class PlayerMovement : MonoBehaviour
 	LayerMask stageMask = 1<<3;
 
 	private bool grounded;
-	private bool movementLocked;
-	public bool MovementLocked{
-		get { return movementLocked; }
-	}
+	private int moveLocks;
 
 
 
@@ -35,7 +43,7 @@ public class PlayerMovement : MonoBehaviour
 	
 	public void UpdateMovement(Vector2Int dir)
 	{
-		if(!MovementLocked && IsGrounded())
+		if(!MovementLocked() && IsGrounded())
 		{
 			// check for jump input
 			if(dir.y > 0)
@@ -119,9 +127,27 @@ public class PlayerMovement : MonoBehaviour
 	}
 
 	
-	public void SetMovementLocked(bool locked)
+	/// Locks ///
+
+	public bool MovementLocked()
 	{
-		movementLocked = locked;
+		return (moveLocks != 0);
 	}
+
+	public void AddMoveLock(MoveLockType lockType)
+	{
+		moveLocks |= (int)lockType;
+	}
+
+	public void RemoveMoveLock(MoveLockType lockType)
+	{
+		moveLocks &= ~(int)lockType;
+	}
+
+	public void ClearMovementLocks()
+	{
+		moveLocks = 0;
+	}
+
 
 }

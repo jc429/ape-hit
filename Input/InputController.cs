@@ -11,7 +11,7 @@ public class InputController : MonoBehaviour
 
 	public UnityEvent confirmEvent;
 	public UnityEvent cancelEvent;
-	public UnityEvent directionEvent;
+	public UnityEvent<InputAction.CallbackContext> directionEvent;
 
 	private void Awake() {
 		GameController.inputController = this;
@@ -38,11 +38,11 @@ public class InputController : MonoBehaviour
 	void GenerateInputs()
 	{
 		gameInputs = new GameInputs();
-		//gameInputs.Player.LightPunch.performed += _ => player1Controller.PerformLightPunch();
-		//gameInputs.Player.HeavyPunch.performed += _ => player1Controller.PerformHeavyPunch();
+
 		//gameInputs.Menu.Confirm.performed += _ => GameController.Instance.StartButtonPressed();
 		gameInputs.Menu.Confirm.performed += _ => confirmEvent.Invoke();
 		gameInputs.Menu.Cancel.performed += _ => cancelEvent.Invoke();
-		
+		gameInputs.Menu.Direction.performed += ctx => directionEvent.Invoke(ctx);
 	}
+
 }

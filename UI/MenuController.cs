@@ -18,12 +18,20 @@ public class MenuController : MonoBehaviour
 		get { return GetComponent<RectTransform>(); }
 	}
 
+	public GameObject menuObj;
 	public RectTransform panel;
 	public GameObject cursor;
+
 	[SerializeField]
 	MenuButton[] buttons;
 	[SerializeField]
 	UnityEvent menuClosedEvent;
+
+	const float refreshRate = 0.01f;
+	const float pixelsPerUpdate = 0.125f;
+	readonly Vector2 baseVec = new Vector2(0.5f, 0.5f);
+
+	string softBlip = "menuBlipSoft";
 
 	MenuState menuState;
 	int selectedButton = 0;
@@ -38,27 +46,27 @@ public class MenuController : MonoBehaviour
 	public void StartOpenMenu()
 	{
 		menuState = MenuState.Opening;
-		panel.sizeDelta = new Vector2(0.5f, 0.5f);
+		panel.sizeDelta = baseVec;
+		menuObj.SetActive(true);
 		panel.gameObject.SetActive(true);
 		StartCoroutine(OpenCoroutine());
 	}
 
 	IEnumerator OpenCoroutine()
 	{
-		float speed = 0.01f;
-		float inc = 0.125f;
+		
 		while(panel.sizeDelta.x < _rectTransform.sizeDelta.x)
 		{
-			float width = Mathf.Clamp(panel.sizeDelta.x + inc, 0, _rectTransform.sizeDelta.x);
+			float width = Mathf.Clamp(panel.sizeDelta.x + pixelsPerUpdate, baseVec.x, _rectTransform.sizeDelta.x);
 			panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
-			yield return new WaitForSeconds(speed);
+			yield return new WaitForSecondsRealtime(refreshRate);
 		}
 		
 		while(panel.sizeDelta.y < _rectTransform.sizeDelta.y)
 		{
-			float height = Mathf.Clamp(panel.sizeDelta.y + inc, 0, _rectTransform.sizeDelta.y);
+			float height = Mathf.Clamp(panel.sizeDelta.y + pixelsPerUpdate, baseVec.y, _rectTransform.sizeDelta.y);
 			panel.sizeDelta = new Vector2(panel.sizeDelta.x, height);
-			yield return new WaitForSeconds(speed);
+			yield return new WaitForSecondsRealtime(refreshRate);
 		}
 		FinishOpenMenu();
 	}
@@ -70,6 +78,13 @@ public class MenuController : MonoBehaviour
 		{
 			b.gameObject.SetActive(true);
 		}
+		selectedButton = GetFirstSelectableItem();
+		if(selectedButton < 0)
+		{
+			StartCloseMenu();
+			return;
+		}
+		UpdateCursorPosition();
 		cursor.SetActive(true);
 	}
 
@@ -84,11 +99,27 @@ public class MenuController : MonoBehaviour
 			b.gameObject.SetActive(false);
 		}
 		cursor.SetActive(false);
+		StartCoroutine(CloseCoroutine());
 	}
 
 	IEnumerator CloseCoroutine()
 	{
-		yield return null;
+		
+		while(panel.sizeDelta.y > baseVec.y)
+		{
+			float height = Mathf.Clamp(panel.sizeDelta.y - pixelsPerUpdate, baseVec.y, _rectTransform.sizeDelta.y);
+			panel.sizeDelta = new Vector2(panel.sizeDelta.x, height);
+			yield return new WaitForSecondsRealtime(refreshRate);
+		}
+
+		while(panel.sizeDelta.x > baseVec.x)
+		{
+			float width = Mathf.Clamp(panel.sizeDelta.x - pixelsPerUpdate, baseVec.x, _rectTransform.sizeDelta.x);
+			panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
+			yield return new WaitForSecondsRealtime(refreshRate);
+		}
+		
+		FinishCloseMenu();
 	}
 	
 	void FinishCloseMenu()
@@ -96,6 +127,7 @@ public class MenuController : MonoBehaviour
 		menuState = MenuState.Closed;
 		panel.sizeDelta = new Vector2(0.5f, 0.5f);
 		panel.gameObject.SetActive(false);
+		menuObj.SetActive(false);
 		menuClosedEvent.Invoke();
 	}
 
@@ -109,13 +141,53 @@ public class MenuController : MonoBehaviour
 		menuState = MenuState.Closed;
 		panel.sizeDelta =  new Vector2(0.5f, 0.5f);
 		panel.gameObject.SetActive(false);
+		menuObj.SetActive(false);
 	}
 
 
 	/// Buttons ///
 
+	public void MoveCursor(Vector2 input)
+	{
+		if(input.y < 0)
+		{
+			do{
+				selectedButton++;
+				selectedButton %= buttons.Length;
+			}while(!buttons[selectedButton].selectable);
+
+			UpdateCursorPosition();
+		}
+		if(input.y > 0)
+		{
+			do{
+				selectedButton += (buttons.Length-1);
+				selectedButton %= buttons.Length;
+			}while(!buttons[selectedButton].selectable);
+			UpdateCursorPosition();
+		}
+		AudioController.instance.PlaySound(softBlip);
+	}
+
+	void UpdateCursorPosition()
+	{
+		Vector3 pos = buttons[selectedButton].GetComponent<RectTransform>().localPosition;
+		cursor.GetComponent<RectTransform>().localPosition = pos;
+	}
+
+	int GetFirstSelectableItem()
+	{
+		for(int i = 0; i < buttons.Length; i++)
+		{
+			if(buttons[i].selectable)
+				return i;
+		}
+		return -1;
+	}
+
 	public void SelectButton(){
 		buttons[selectedButton].ExecuteButton();
+		AudioController.instance.PlaySound("menuSelect");
 	}
 
 	

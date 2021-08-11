@@ -18,7 +18,7 @@ public class GameController : MonoBehaviour
 	}
 	public static InputController inputController;
 	public static UIManager uiManager;
-	public static CombatManager combatManager;
+	public static VersusCombatManager combatManager;
 	public static GameCamera gameCamera;
 
 	private static GameMode gameMode = GameMode.Title;

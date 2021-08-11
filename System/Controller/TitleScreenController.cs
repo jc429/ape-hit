@@ -13,6 +13,7 @@ public class TitleScreenController : MonoBehaviour
 
 	private void Awake() {
 		GameController.SetGameMode(GameMode.Title);
+		DisplayTitleOverlay();
 	}
 
 	public void ConfirmButtonPressed()
@@ -20,7 +21,7 @@ public class TitleScreenController : MonoBehaviour
 		switch(mainMenu.GetMenuState())
 		{
 			case MenuState.Closed:
-				titleOverlay.SetActive(false);
+				HideTitleOverlay();
 				mainMenu.StartOpenMenu();
 				break;
 			case MenuState.Open:
@@ -39,10 +40,21 @@ public class TitleScreenController : MonoBehaviour
 
 	public void DirectionPressed(InputAction.CallbackContext ctx)
 	{
-	
+		if(mainMenu.GetMenuState() == MenuState.Open)
+		{
+			mainMenu.MoveCursor(ctx.ReadValue<Vector2>());
+		}
 	}
 
+	public void DisplayTitleOverlay()
+	{
+		titleOverlay.SetActive(true);
+	}
 
+	public void HideTitleOverlay()
+	{
+		titleOverlay.SetActive(false);
+	}
 
 	public void GoToVersus()
 	{

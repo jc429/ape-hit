@@ -13,7 +13,14 @@ public class CollisionBox : MonoBehaviour
 	public Vector2 boxPos = Vector2.zero;
 	public Vector2 boxSize = Vector2.one;
 	protected Vector2 halfSize = Vector2.one;
-	public PlayerController owner;
+	public EntityController owner;
+
+	private void Awake() {
+		if(owner == null)
+		{
+			owner = GetComponentInParent<EntityController>();
+		}
+	}
 
 	public void UpdateColBox(Vector3 pos, Vector3 size)
 	{
