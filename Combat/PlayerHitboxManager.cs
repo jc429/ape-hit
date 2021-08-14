@@ -56,6 +56,7 @@ public class PlayerHitboxManager : MonoBehaviour
 				hurtboxes[(int)HurtboxID.Head].SetHurtboxInfo(0.0f, 0.5f, 0.4f, 0.5f);
 				break;
 			case ActionState.Victory:
+			case ActionState.Lariat:
 				hurtboxes[(int)HurtboxID.Body].SetHurtboxInfo(0.0f, -0.1f, 1.0f, 0.8f);
 				hurtboxes[(int)HurtboxID.Head].SetHurtboxInfo(0.0f, 0.5f, 0.4f, 0.4f);
 				break;
@@ -86,7 +87,17 @@ public class PlayerHitboxManager : MonoBehaviour
 				break;
 			case AttackID.HeavyPunch:
 				hitboxes[0].SetHitboxInfo(0.35f, 0.25f, 0.8f, 0.4f);
-				hitboxes[0].SetHitInfo(4, 30, 5f, new Vector2(1,3));
+				hitboxes[0].SetHitInfo(3, 30, 5f, new Vector2(1,3));
+				hitboxes[0].SetHitboxActive();
+				break;
+			case AttackID.Uppercut:
+				hitboxes[0].SetHitboxInfo(0.35f, 0.25f, 0.8f, 0.4f);
+				hitboxes[0].SetHitInfo(1, 20, 6f, new Vector2(0.2f,1));
+				hitboxes[0].SetHitboxActive();
+				break;
+			case AttackID.Lariat:
+				hitboxes[0].SetHitboxInfo(0.0f, 0.3f, 2f, 0.4f);
+				hitboxes[0].SetHitInfo(2, 20, 6f, new Vector2(1,0.1f));
 				hitboxes[0].SetHitboxActive();
 				break;
 			default:

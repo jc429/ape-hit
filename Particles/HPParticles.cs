@@ -7,10 +7,8 @@ public class HPParticles : MonoBehaviour
 	[SerializeField]
 	PixelParticle particlePrefab;
 
-	[SerializeField]
-	Color hpColor;
 
-	public void CreateHPParticleChunk(Direction side, int lowHP, int highHP)
+	public void CreateHPParticleChunk(Direction side, int lowHP, int highHP, Color color)
 	{
 		Vector3 basePos = new Vector3(0.21875f, 1.59375f);
 		for(int i = lowHP; i < highHP; i++)
@@ -22,7 +20,7 @@ public class HPParticles : MonoBehaviour
 				Vector3 offset = new Vector3(i*PixelParticle.PixelWidth, j*PixelParticle.PixelWidth);
 				Vector3 pos = new Vector3((basePos.x + offset.x)*side.ToInt(), basePos.y + offset.y, -1);
 				PixelParticle px = Instantiate(particlePrefab, pos, Quaternion.identity, transform) as PixelParticle;
-				px.SetColor(hpColor);
+				px.SetColor(color);
 				
 				Vector3 vel = new Vector3();
 				vel.x = (1 + (i-lowHP))*side.ToInt();

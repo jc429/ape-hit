@@ -1,13 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 
-public class TitleScreenController : MonoBehaviour
+
+public class TitleScreenController : GameModeController
 {
-	[SerializeField]
-	MenuController mainMenu;
 	[SerializeField]
 	GameObject titleOverlay;
 
@@ -16,36 +14,19 @@ public class TitleScreenController : MonoBehaviour
 		DisplayTitleOverlay();
 	}
 
-	public void ConfirmButtonPressed()
+	private void Start() {
+		AudioController.instance.PlayTrack(TrackID.Title);
+	}
+
+
+
+	protected override void StartButtonPressed()
 	{
-		switch(mainMenu.GetMenuState())
-		{
-			case MenuState.Closed:
-				HideTitleOverlay();
-				mainMenu.StartOpenMenu();
-				break;
-			case MenuState.Open:
-				mainMenu.SelectButton();
-				break;
-		}
+		HideTitleOverlay();
+		pauseMenu.StartOpenMenu();
 	}
 	
-	public void CancelButtonPressed()
-	{
-		if(mainMenu.GetMenuState() == MenuState.Open)
-		{
-			mainMenu.StartCloseMenu();
-		}
-	}
-
-	public void DirectionPressed(InputAction.CallbackContext ctx)
-	{
-		if(mainMenu.GetMenuState() == MenuState.Open)
-		{
-			mainMenu.MoveCursor(ctx.ReadValue<Vector2>());
-		}
-	}
-
+	
 	public void DisplayTitleOverlay()
 	{
 		titleOverlay.SetActive(true);
@@ -58,6 +39,15 @@ public class TitleScreenController : MonoBehaviour
 
 	public void GoToVersus()
 	{
-		SceneManager.LoadScene(1);
+		GameController.versusMode = VersusMode.Player_VS_Player;
+		GameController.GoToScene(GameMode.Versus);
 	}
+
+	public void GoToSinglePlayer()
+	{
+		GameController.versusMode = VersusMode.Player_VS_CPU;
+		GameController.GoToScene(GameMode.Versus);
+	}
+
+
 }

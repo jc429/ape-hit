@@ -20,6 +20,12 @@ public enum RoundResult{
 	Draw
 }
 
+public enum VersusMode{
+	Player_VS_CPU,
+	Player_VS_Player,
+	CPU_VS_CPU
+}
+
 
 public class VersusCombatManager : GameModeController
 {
@@ -33,7 +39,12 @@ public class VersusCombatManager : GameModeController
 	[SerializeField]
 	PlayerController playerPrefab;
 	[SerializeField]
+	PlayerController aiPrefab;
+	[SerializeField]
 	Transform playerContainer;
+
+
+	public VersusMode versusMode;
 
 	static RoundState roundState;
 	public static RoundState RoundState{
@@ -46,11 +57,16 @@ public class VersusCombatManager : GameModeController
 	int p1RoundWins;
 	int p2RoundWins;
 
-
+	WaitForSecondsRealtime readyTimerWait = new WaitForSecondsRealtime(0.075f);
 
 
 	private void Awake() {
+		GameController.SetGameMode(GameMode.Versus);
 		roundState = RoundState.MatchPreStart;
+	}
+
+	private void Start() {
+		InitMatch();
 	}
 
 	private void FixedUpdate() {
@@ -77,11 +93,35 @@ public class VersusCombatManager : GameModeController
 		}	
 	}
 
+	protected void InitMatch()
+	{
+		GameController.uiManager.InitUI();
+		AudioController.instance.PlayTrack(TrackID.Versus);
+	}
 
 
+	protected override void StartButtonPressed()
+	{
+		switch(RoundState)
+			{
+				case RoundState.MatchPreStart:
+					MatchStart();
+					break;
+				case RoundState.Active:
+					if(!GameplayPaused)
+					{
+						VersusCombatManager.PauseGameplay();
+						pauseMenu.StartOpenMenu();
+					}
+					break;
+			}
+	}
 
+	public void UnpauseMatch()
+	{
+		UnpauseGameplay();
+	}
 
-	
 	private void CheckWinners()
 	{
 		if(winners.Count <= 0)
@@ -105,7 +145,11 @@ public class VersusCombatManager : GameModeController
 		StartCoroutine(RoundEndCoroutine(roundResult));
 	}
 
-
+	public void GoToTitle()
+	{
+		ClearCombat();
+		GameController.GoToScene(GameMode.Title);
+	}
 
 	////////////////
 	/// Spawning ///
@@ -116,26 +160,55 @@ public class VersusCombatManager : GameModeController
 		gameplayPaused = true;
 		for(int i = 0; i < 2; i++)
 		{
-			PlayerController player = Instantiate(playerPrefab) as PlayerController;
+			PlayerController player;
+			switch(versusMode)
+			{
+				case VersusMode.Player_VS_CPU:
+					player = Instantiate(i == 0 ? playerPrefab : aiPrefab) as PlayerController;
+					break;
+				case VersusMode.CPU_VS_CPU:
+					player = Instantiate(aiPrefab) as PlayerController;
+					break;
+				case VersusMode.Player_VS_Player:
+				default:
+					player = Instantiate(playerPrefab) as PlayerController;
+					break;
+			}
 			player.transform.parent = playerContainer;
 			players.Add(player);
 			player.AddInputLock(InputLockType.System);
 			player.SetActionState(ActionState.Victory);
 			player.playerID = i;
 		}
-		players[0].SetPalette(PaletteIndex.Player1);
+		players[0].SetPalette(GameController.GetPaletteP1());
 		players[0].transform.localPosition = p1Spawn;
 		players[0].SetHPBar(hpBarL);
 		players[0].SetOpponent(players[1]);
 		players[0].SetFacing(Direction.E);
-		players[0].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 1 Keyboard");
+		players[0].SetSortingOrder(10);
+		if(!players[0].isAI)
+		{
+			players[0].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 1 Keyboard");
+		}
+		else
+		{
+			players[0].StartAIController();
+		}
 
-		players[1].SetPalette(PaletteIndex.Player2);
+		players[1].SetPalette(GameController.GetPaletteP2());
 		players[1].transform.localPosition = p2Spawn;
 		players[1].SetHPBar(hpBarR);
 		players[1].SetOpponent(players[0]);
 		players[1].SetFacing(Direction.W);
-		players[1].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 2 Keyboard");
+		players[1].SetSortingOrder(5);
+		if(!players[1].isAI)
+		{
+			players[1].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 2 Keyboard");
+		}
+		else
+		{
+			players[1].StartAIController();
+		}
 	}
 
 
@@ -165,6 +238,7 @@ public class VersusCombatManager : GameModeController
 		}
 		GameController.uiManager.ResetUI();
 		GameController.uiManager.Overlay.HideScreen();
+		GameController.uiManager.SetHUDActive(true);
 		winners.Clear();
 		hpBarL.ResetHP();
 		hpBarR.ResetHP();
@@ -199,7 +273,7 @@ public class VersusCombatManager : GameModeController
 		}
 		yield return new WaitForSecondsRealtime(5);
 		ClearCombat();
-		GameController.Instance.RestartGame();
+		RestartMatch();
 	}
 
 	
@@ -217,6 +291,13 @@ public class VersusCombatManager : GameModeController
 		roundState = RoundState.MatchPreStart;
 	}
 
+	public void RestartMatch()
+	{
+		//GameController.Instance.RestartGame();
+		AudioController.instance.StopAllTracks();
+		roundState = RoundState.MatchPreStart;
+		InitMatch();
+	}
 
 	//////////////
 	/// Rounds ///
@@ -225,6 +306,10 @@ public class VersusCombatManager : GameModeController
 	public void RoundStart()
 	{
 		roundState = RoundState.Starting;
+		foreach(PlayerController p in players)
+		{
+			p.AddInputLock(InputLockType.System);
+		}
 		StartCoroutine(RoundReadyCoroutine());
 	}
 
@@ -234,7 +319,7 @@ public class VersusCombatManager : GameModeController
 		for(int i = 0; i < 20; i++)
 		{
 			GameController.uiManager.Overlay.SetReadyScale((19-i)*2);
-			yield return new WaitForSecondsRealtime(0.075f);
+			yield return readyTimerWait;
 		}
 
 		// round has officially started here
@@ -322,7 +407,19 @@ public class VersusCombatManager : GameModeController
 	}
 
 
-
-
+		
+	public override void SavePalettes()
+	{
+		PaletteIndex p1pal = paletteSelectors[0].GetPalette();
+		PaletteIndex p2pal = paletteSelectors[1].GetPalette();
+		GameController.SetPalettes(p1pal, p2pal);
+		if(players.Count > 0){
+			players[0].SetPalette(p1pal);
+		}
+		if(players.Count > 1){
+			players[1].SetPalette(p2pal);
+		}
+		
+	}
 
 }

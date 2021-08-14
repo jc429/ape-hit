@@ -5,10 +5,11 @@ using UnityEngine.SceneManagement;
 
 public enum GameMode
 {
-	Title,
-	Versus,
-	SinglePlayer
+	Title			= 0,
+	Versus			= 1,
+	SinglePlayer	= 2,
 }
+
 
 public class GameController : MonoBehaviour
 {
@@ -25,6 +26,12 @@ public class GameController : MonoBehaviour
 
 	private static bool gamePaused;
 	private static float pausedTimeScale = 1;
+
+	public static VersusMode versusMode;
+	
+	static PaletteIndex player1Pal = PaletteIndex.Player1;
+	static PaletteIndex player2Pal = PaletteIndex.Player2;
+
 
 	private void Awake() {
 		if (instance == null) {
@@ -49,9 +56,9 @@ public class GameController : MonoBehaviour
 
 	public void RestartGame()
 	{
-		combatManager.ClearCombat();
 		uiManager.ResetUI();
 		uiManager.Overlay.HideScreen();
+		GoToScene(GameMode.Title);
 		InitGame();
 	}
 
@@ -83,5 +90,42 @@ public class GameController : MonoBehaviour
 	public static GameMode GetGameMode()
 	{
 		return gameMode;
+	}
+
+	public static void GoToScene(GameMode scene)
+	{
+		AudioController.instance.StopAllTracks();
+		SceneManager.LoadScene((int)scene);
+		Time.timeScale = 1;
+	}
+
+		
+	private void OnEnable() {
+		SceneManager.sceneLoaded += OnLevelFinishedLoading;
+	}
+
+	private void OnDisable() {
+		SceneManager.sceneLoaded -= OnLevelFinishedLoading;
+	}
+
+
+	void OnLevelFinishedLoading(Scene scene, LoadSceneMode mode){
+
+	}
+
+	public static void SetPalettes(PaletteIndex p1pal, PaletteIndex p2pal)
+	{
+		player1Pal = p1pal;
+		player2Pal = p2pal;
+	}
+
+	public static PaletteIndex GetPaletteP1()
+	{
+		return player1Pal;
+	}
+
+	public static PaletteIndex GetPaletteP2()
+	{
+		return player2Pal;
 	}
 }

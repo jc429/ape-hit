@@ -28,6 +28,7 @@ public class MenuController : MonoBehaviour
 	UnityEvent menuClosedEvent;
 
 	const float refreshRate = 0.01f;
+	private WaitForSecondsRealtime refreshWait = new WaitForSecondsRealtime(refreshRate);
 	const float pixelsPerUpdate = 0.125f;
 	readonly Vector2 baseVec = new Vector2(0.5f, 0.5f);
 
@@ -49,6 +50,7 @@ public class MenuController : MonoBehaviour
 		panel.sizeDelta = baseVec;
 		menuObj.SetActive(true);
 		panel.gameObject.SetActive(true);
+		gameObject.SetActive(true);
 		StartCoroutine(OpenCoroutine());
 	}
 
@@ -59,14 +61,14 @@ public class MenuController : MonoBehaviour
 		{
 			float width = Mathf.Clamp(panel.sizeDelta.x + pixelsPerUpdate, baseVec.x, _rectTransform.sizeDelta.x);
 			panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
-			yield return new WaitForSecondsRealtime(refreshRate);
+			yield return refreshWait;
 		}
 		
 		while(panel.sizeDelta.y < _rectTransform.sizeDelta.y)
 		{
 			float height = Mathf.Clamp(panel.sizeDelta.y + pixelsPerUpdate, baseVec.y, _rectTransform.sizeDelta.y);
 			panel.sizeDelta = new Vector2(panel.sizeDelta.x, height);
-			yield return new WaitForSecondsRealtime(refreshRate);
+			yield return refreshWait;
 		}
 		FinishOpenMenu();
 	}
@@ -109,14 +111,14 @@ public class MenuController : MonoBehaviour
 		{
 			float height = Mathf.Clamp(panel.sizeDelta.y - pixelsPerUpdate, baseVec.y, _rectTransform.sizeDelta.y);
 			panel.sizeDelta = new Vector2(panel.sizeDelta.x, height);
-			yield return new WaitForSecondsRealtime(refreshRate);
+			yield return refreshWait;
 		}
 
 		while(panel.sizeDelta.x > baseVec.x)
 		{
 			float width = Mathf.Clamp(panel.sizeDelta.x - pixelsPerUpdate, baseVec.x, _rectTransform.sizeDelta.x);
 			panel.sizeDelta = new Vector2(width, panel.sizeDelta.y);
-			yield return new WaitForSecondsRealtime(refreshRate);
+			yield return refreshWait;
 		}
 		
 		FinishCloseMenu();
@@ -149,6 +151,17 @@ public class MenuController : MonoBehaviour
 
 	public void MoveCursor(Vector2 input)
 	{
+		if(input.x != 0)
+		{
+			PaletteSelector ps = buttons[selectedButton].GetComponent<PaletteSelector>();
+			if(ps != null)
+			{
+				ps.CyclePalette(Mathf.RoundToInt(input.x));
+				AudioController.instance.PlaySound(softBlip);
+				//return;
+			}
+		}
+
 		if(input.y < 0)
 		{
 			do{

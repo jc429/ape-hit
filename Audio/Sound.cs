@@ -1,10 +1,21 @@
 using UnityEngine;
 using UnityEngine.Audio;
 
+
+
+public enum TrackID{
+	Null,
+	Title,
+	SinglePlayer,
+	Versus,
+	Options
+}
+
 [System.Serializable]
 public class Sound {
 	
 	public string name;
+	public TrackID trackID;
 
 	public AudioClip clip;
 

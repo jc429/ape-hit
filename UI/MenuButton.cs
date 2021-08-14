@@ -19,7 +19,8 @@ public class MenuButton : MonoBehaviour
 	public UnityEvent clickEvent;
 
 	private void Awake() {
-		GetComponent<Image>().color = selectable ? Color.white : Color.gray;
+		if(GetComponent<Image>())
+			GetComponent<Image>().color = selectable ? Color.white : Color.gray;
 	}
 
 	public void ExecuteButton()

@@ -11,6 +11,8 @@ public enum ActionState
 	Fall,
 	LightPunch,
 	HeavyPunch,
+	Uppercut,
+	Lariat,
 	HitStun,
 	Launch,
 	Knockdown,
@@ -38,6 +40,10 @@ public static class ActionStateExtensions {
 				return "punch_light";
 			case ActionState.HeavyPunch:
 				return "punch_heavy";
+			case ActionState.Uppercut:
+				return "uppercut";
+			case ActionState.Lariat:
+				return "lariat";
 			case ActionState.HitStun:
 				return "hitstun";
 			case ActionState.Intro:

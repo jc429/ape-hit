@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 
 
 
@@ -25,12 +25,14 @@ public class GameModeController : MonoBehaviour
 
 	protected static List<PlayerController> players = new List<PlayerController>();
 	protected static List<PlayerController> winners = new List<PlayerController>();			// list of players who have killed a foe this frame
+	
 
 	////////////
 	/// Hits ///
 	////////////
 	protected const float hitStopDuration =  0.125f;
 	protected static List<AttackHit> currentHits = new List<AttackHit>();
+	protected static WaitForSecondsRealtime hitStop = new WaitForSecondsRealtime(hitStopDuration);
 
 	public static void RegisterAttackHit(EntityController attacker, Hurtbox target, int dmg, int hitstun, float kbForce, Vector2 kbAngle)
 	{
@@ -53,11 +55,14 @@ public class GameModeController : MonoBehaviour
 			return;
 		}
 		targetObj.ReceiveHit(hit);
-		AudioController.instance.PlaySound("lightPunch");
+		if(hit.knockbackForce > 5)
+			AudioController.instance.PlaySound("heavyHit");
+		else
+			AudioController.instance.PlaySound("lightHit");
 		Vector3 burstDir = targetObj.transform.position - hit.attacker.transform.position;
-		_combatParticles?.CreateBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
+		_combatParticles?.CreateHitBurstAtPosition(targetObj.transform.position, burstDir, Color.white);
 		
-		StartCoroutine(HitStopCoroutine(hitStopDuration));
+		StartCoroutine(HitStopCoroutine());
 		//Vector2 shakeVec = new Vector2(hit.attacker.GetFacing().ToInt(), 0);
 		Vector2 shakeVec = Vector2.down;
 		GameController.gameCamera.ShakeCamera(1, shakeVec);
@@ -65,15 +70,82 @@ public class GameModeController : MonoBehaviour
 	}
 
 
-	protected IEnumerator HitStopCoroutine(float duration)
+	protected IEnumerator HitStopCoroutine()
 	{
 		FreezeTime(TimeFreezeSouce.HitStop);
-		yield return new WaitForSecondsRealtime(duration);
+		yield return hitStop;
 		UnfreezeTime(TimeFreezeSouce.HitStop);
-		
 	}
 
 	protected virtual void HitPostProcess(AttackHit hit){}
+
+
+	/// Pause Menu ///
+
+	
+	[SerializeField]
+	protected MenuController pauseMenu;
+	[SerializeField]
+	protected MenuController optionsMenu;
+	[SerializeField]
+	protected PaletteSelector[] paletteSelectors;
+
+
+	public void ConfirmButtonPressed()
+	{
+		if(optionsMenu.GetMenuState() == MenuState.Open)
+		{
+			optionsMenu.SelectButton();
+		}
+		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		{
+			pauseMenu.SelectButton();
+		}
+		else{
+			StartButtonPressed();
+		}
+	}
+	
+	public void CancelButtonPressed()
+	{
+		if(optionsMenu.GetMenuState() == MenuState.Open)
+		{
+			optionsMenu.StartCloseMenu();
+		}
+		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		{
+			pauseMenu.StartCloseMenu();
+		}
+	}
+
+	public void DirectionPressed(InputAction.CallbackContext ctx)
+	{
+		if(optionsMenu.GetMenuState() == MenuState.Open)
+		{
+			optionsMenu.MoveCursor(ctx.ReadValue<Vector2>());
+		}
+		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		{
+			pauseMenu.MoveCursor(ctx.ReadValue<Vector2>());
+		}
+	}
+
+	protected virtual void StartButtonPressed(){}
+
+
+	/// Palette Swapping ///
+
+
+	
+	public virtual void SavePalettes()
+	{
+		PaletteIndex p1pal = paletteSelectors[0].GetPalette();
+		PaletteIndex p2pal = paletteSelectors[1].GetPalette();
+		GameController.SetPalettes(p1pal, p2pal);
+	}
+
+
+
 
 
 	/// Pause ///
@@ -122,4 +194,7 @@ public class GameModeController : MonoBehaviour
 	{
 		Time.timeScale = (timeFreeze == 0) ? 1 : 0;
 	}
+
+
+
 }

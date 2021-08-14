@@ -5,7 +5,9 @@ using UnityEngine;
 public enum AttackID
 {
 	LightPunch = 0,
-	HeavyPunch = 1
+	HeavyPunch = 1,
+	Uppercut = 2,
+	Lariat = 3,
 }
 
 

@@ -17,7 +17,7 @@ public class SinglePlayerController : GameModeController
 
 	[SerializeField]
 	HPBar hpBar;
-
+	
 	[SerializeField]
 	PlayerController playerPrefab;
 	[SerializeField]
@@ -31,7 +31,12 @@ public class SinglePlayerController : GameModeController
 
 
 	private void Awake() {
+		GameController.SetGameMode(GameMode.SinglePlayer);
 		stageState = StageState.StagePreStart;
+	}
+
+	private void Start() {
+		AudioController.instance.PlayTrack(TrackID.SinglePlayer);
 	}
 
 	private void FixedUpdate() {
@@ -60,7 +65,9 @@ public class SinglePlayerController : GameModeController
 
 
 
-
+	protected override void HitPostProcess(AttackHit hit){
+		_combatParticles?.CreateRingBurstAtPosition(hit.target.transform.position, Color.cyan);
+	}
 
 
 	////////////////
@@ -178,5 +185,11 @@ public class SinglePlayerController : GameModeController
 
 	
 
+
+	public void GoToTitle()
+	{
+		ClearCombat();
+		GameController.GoToScene(GameMode.Title);
+	}
 
 }

@@ -38,6 +38,8 @@ public class PlayerController : EntityController, IHitboxResponder
 
 	public PlayerController opponent;
 
+	public bool isAI;
+
 	public int playerID;
 	private int inputLocks;
 	CancelState cancelState;
@@ -83,11 +85,15 @@ public class PlayerController : EntityController, IHitboxResponder
 
 	private void FixedUpdate()
 	{
+		
+		
 		if(stunTimer > 0)
 		{
 			stunTimer--;
-			if(stunTimer == 0)
+			if(stunTimer <= 0)
 			{
+				stunTimer = 0;
+				RemoveInputLock(InputLockType.HitStun);
 				_playerMovement.RemoveMoveLock(MoveLockType.HitStun);
 			}
 		}
@@ -118,7 +124,10 @@ public class PlayerController : EntityController, IHitboxResponder
 		SetFacing((gameObject.transform.position.x > opponent.transform.position.x) ? Direction.W : Direction.E);
 	}
 
-
+	public void SetSortingOrder(int priority)
+	{
+		_spriteRenderer.sortingOrder = priority;
+	}
 
 
 
@@ -131,20 +140,26 @@ public class PlayerController : EntityController, IHitboxResponder
 		_playerAnim.SetAnimationState(state);
 	}
 
-	void PerformLightPunch()
+	void PerformLightAttack()
 	{
 		if(CheckCancelState(CancelState.FreeCancel))
 		{
-			SetActionState(ActionState.LightPunch);
+			if(moveInputs.y < 0)
+				SetActionState(ActionState.Uppercut);
+			else
+				SetActionState(ActionState.LightPunch);
 		}
 	}
 
-	public void PerformHeavyPunch()
+	void PerformHeavyAttack()
 	{
 		if(CheckCancelState(CancelState.HeavyCancel))
 		{
 			CancelAttackRecovery();
-			SetActionState(ActionState.HeavyPunch);
+			if(moveInputs.y < 0)
+				SetActionState(ActionState.Lariat);
+			else
+				SetActionState(ActionState.HeavyPunch);
 		}
 	}
 
@@ -159,6 +174,7 @@ public class PlayerController : EntityController, IHitboxResponder
 	public override void ReceiveHit(AttackHit hit)
 	{
 		SetActionState(ActionState.HitStun);
+		_playerMovement.RemoveMoveLock(MoveLockType.Animation);
 		_playerMovement.AddMoveLock(MoveLockType.HitStun);
 		Vector3 launchVel = Vector3.Normalize(hit.knockbackAngle) * hit.knockbackForce;
 		launchVel.x *= hit.attacker.GetFacing().ToInt();
@@ -228,20 +244,107 @@ public class PlayerController : EntityController, IHitboxResponder
 
 	public void MovePressed(InputAction.CallbackContext ctx)
 	{
+		if(isAI)
+			return;
 		Vector2 inputs = ctx.ReadValue<Vector2>();
 		moveInputs = new Vector2Int( System.Math.Sign(inputs.x), System.Math.Sign(inputs.y));
 	}
 
 	public void LightPunchPressed(InputAction.CallbackContext ctx)
 	{
+		if(isAI)
+			return;
 		if(ctx.action.triggered && !InputLocked())
-			PerformLightPunch();
+			PerformLightAttack();
 	}
 
 	public void HeavyPunchPressed(InputAction.CallbackContext ctx)
 	{
+		if(isAI)
+			return;
 		if(ctx.action.triggered && !InputLocked())
-			PerformHeavyPunch();
+			PerformHeavyAttack();
+	}
+
+	WaitForSeconds aiTickWait = new WaitForSeconds(0.75f);
+	Coroutine aiController;
+	public void StartAIController()
+	{
+		if(!isAI)
+			return;
+		if(aiController != null)
+		{
+			EndAIController();
+		}
+		aiController = StartCoroutine(AIControl());
+	}
+
+	IEnumerator AIControl()
+	{
+		if(opponent == null)
+		{
+			Debug.LogWarning("No opponent found!");
+		}
+		while(true)
+		{
+			if(InputLocked())
+			{
+				yield return aiTickWait;
+				continue;
+			}
+			
+			float walkThreshold = 1;
+			if(transform.position.x - opponent.transform.position.x > walkThreshold)
+			{
+				moveInputs = new Vector2Int(-1, 0);
+			}
+			else if(opponent.transform.position.x - transform.position.x > walkThreshold)
+			{
+				moveInputs = new Vector2Int(1, 0);
+			}
+			else
+			{
+				moveInputs = new Vector2Int(0, 0);
+			}
+
+			if(_playerMovement.IsGrounded() && CheckCancelState(CancelState.FreeCancel))
+			{
+
+				// randomly choose an action
+				int numActions = 8;
+				int r = Random.Range(0,numActions);
+				switch(r)
+				{	
+					case 4:
+						int x = Random.Range(0,3);
+						_playerMovement.Jump(x-1);
+						break;
+					case 3:
+						SetActionState(ActionState.Lariat);
+						break;
+					case 2:
+						SetActionState(ActionState.HeavyPunch);
+						break;
+					case 1:
+						SetActionState(ActionState.Uppercut);
+						break;
+					case 0:
+						SetActionState(ActionState.LightPunch);
+						break;
+					default:
+						break;
+				}
+			}
+
+			yield return aiTickWait;
+		}
+	}
+
+
+	public void EndAIController()
+	{
+		StopCoroutine(aiController);
+		aiController = null;
 	}
 
 }

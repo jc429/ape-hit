@@ -11,6 +11,8 @@ public class UIManager : MonoBehaviour
 		get { return overlay; }
 	}
 	
+	[SerializeField]
+	GameObject hud;
 
 	[SerializeField]
 	[NamedArrayAttribute(new string[]{"P1 R1", "P1 R2", "P2 R1", "P2 R2"})]
@@ -19,10 +21,15 @@ public class UIManager : MonoBehaviour
 
 	private void Awake() {
 		GameController.uiManager = this;
-		ResetUI();
-		overlay.ShowScreen(OverlayScreen.PressStart);
+		InitUI();
 	}
 
+	public void InitUI()
+	{
+		ResetUI();
+		SetHUDActive(false);
+		overlay.ShowScreen(OverlayScreen.PressStart);
+	}
 
 
 	public void ResetUI()
@@ -51,4 +58,8 @@ public class UIManager : MonoBehaviour
 		}
 	}
 
+	public void SetHUDActive(bool active)
+	{
+		hud?.SetActive(active);
+	}
 }
