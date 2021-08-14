@@ -107,10 +107,13 @@ public class VersusCombatManager : GameModeController
 		}
 	}
 
-	protected override void StartButtonLongPress()
+	protected override void StartButtonLongPress(InputAction.CallbackContext ctx)
 	{
 		switch(RoundState)
 		{
+			case RoundState.MatchPreStart:
+				MatchStart();
+				break;
 			case RoundState.Active:
 				if(!GameplayPaused)
 				{

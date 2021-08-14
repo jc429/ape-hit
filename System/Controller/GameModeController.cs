@@ -90,7 +90,7 @@ public class GameModeController : MonoBehaviour
 	[SerializeField]
 	protected PaletteSelector[] paletteSelectors;
 
-	const float holdThreshold = 1f;
+	const float holdThreshold = 0.5f;
 	bool pauseDown = false;
 	protected float pauseInputHoldTime = 0;
 
@@ -106,15 +106,14 @@ public class GameModeController : MonoBehaviour
 		}
 		else if(ctx.performed)
 		{
-			StartButtonPressed(ctx);
-			PausePressed();
-		}
-		if(ctx.started)
-		{
-		}
-		if(ctx.canceled)
-		{
-			PauseReleased();
+			if(ctx.duration > holdThreshold)
+			{
+				StartButtonLongPress(ctx);
+			}
+			else
+			{
+				StartButtonPressed(ctx);
+			}
 		}
 	}
 	
@@ -147,32 +146,8 @@ public class GameModeController : MonoBehaviour
 	}
 
 	protected virtual void StartButtonPressed(InputAction.CallbackContext ctx){}
-	protected virtual void StartButtonLongPress(){}
+	protected virtual void StartButtonLongPress(InputAction.CallbackContext ctx){}
 
-	void PausePressed()
-	{
-		pauseDown = true;
-		pauseInputHoldTime = 0;
-	}
-
-	void PauseReleased()
-	{
-		pauseDown = false;
-		pauseInputHoldTime = 0;
-	}
-
-	private void Update() {
-		if(pauseDown)
-		{
-			pauseInputHoldTime += Time.deltaTime;
-			if(pauseInputHoldTime >= holdThreshold)
-			{
-				pauseDown = false;
-				pauseInputHoldTime = 0;
-				StartButtonLongPress();
-			}
-		}
-	}
 
 	/// Palette Swapping ///
 
