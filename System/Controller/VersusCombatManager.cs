@@ -43,9 +43,6 @@ public class VersusCombatManager : GameModeController
 	[SerializeField]
 	Transform playerContainer;
 
-
-	public VersusMode versusMode;
-
 	static RoundState roundState;
 	public static RoundState RoundState{
 		get { return roundState; }
@@ -100,22 +97,30 @@ public class VersusCombatManager : GameModeController
 	}
 
 
-	protected override void StartButtonPressed()
+	protected override void StartButtonPressed(InputAction.CallbackContext ctx)
 	{
 		switch(RoundState)
-			{
-				case RoundState.MatchPreStart:
-					MatchStart();
-					break;
-				case RoundState.Active:
-					if(!GameplayPaused)
-					{
-						VersusCombatManager.PauseGameplay();
-						pauseMenu.StartOpenMenu();
-					}
-					break;
-			}
+		{
+			case RoundState.MatchPreStart:
+				MatchStart();
+				break;
+		}
 	}
+
+	protected override void StartButtonLongPress()
+	{
+		switch(RoundState)
+		{
+			case RoundState.Active:
+				if(!GameplayPaused)
+				{
+					VersusCombatManager.PauseGameplay();
+					pauseMenu.StartOpenMenu();
+				}
+				break;
+		}
+	}
+
 
 	public void UnpauseMatch()
 	{
@@ -161,7 +166,7 @@ public class VersusCombatManager : GameModeController
 		for(int i = 0; i < 2; i++)
 		{
 			PlayerController player;
-			switch(versusMode)
+			switch(GameController.versusMode)
 			{
 				case VersusMode.Player_VS_CPU:
 					player = Instantiate(i == 0 ? playerPrefab : aiPrefab) as PlayerController;
@@ -188,7 +193,7 @@ public class VersusCombatManager : GameModeController
 		players[0].SetSortingOrder(10);
 		if(!players[0].isAI)
 		{
-			players[0].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 1 Keyboard");
+			players[0].GetComponent<PlayerInput>().SwitchCurrentControlScheme("KeyboardLeft");
 		}
 		else
 		{
@@ -203,7 +208,7 @@ public class VersusCombatManager : GameModeController
 		players[1].SetSortingOrder(5);
 		if(!players[1].isAI)
 		{
-			players[1].GetComponent<PlayerInput>().SwitchCurrentControlScheme("Player 2 Keyboard");
+			players[1].GetComponent<PlayerInput>().SwitchCurrentControlScheme("KeyboardRight");
 		}
 		else
 		{

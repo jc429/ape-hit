@@ -13,6 +13,8 @@ public enum ActionState
 	HeavyPunch,
 	Uppercut,
 	Lariat,
+	AirLight,
+	AirHeavy,
 	HitStun,
 	Launch,
 	Knockdown,
@@ -44,6 +46,10 @@ public static class ActionStateExtensions {
 				return "uppercut";
 			case ActionState.Lariat:
 				return "lariat";
+			case ActionState.AirLight:
+				return "air_light";
+			case ActionState.AirHeavy:
+				return "air_heavy";
 			case ActionState.HitStun:
 				return "hitstun";
 			case ActionState.Intro:

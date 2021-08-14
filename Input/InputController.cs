@@ -9,8 +9,8 @@ public class InputController : MonoBehaviour
 {
 	private static GameInputs gameInputs;
 
-	public UnityEvent confirmEvent;
-	public UnityEvent cancelEvent;
+	public UnityEvent<InputAction.CallbackContext> confirmEvent;
+	public UnityEvent<InputAction.CallbackContext> cancelEvent;
 	public UnityEvent<InputAction.CallbackContext> directionEvent;
 
 	private void Awake() {
@@ -40,9 +40,10 @@ public class InputController : MonoBehaviour
 		gameInputs = new GameInputs();
 
 		//gameInputs.Menu.Confirm.performed += _ => GameController.Instance.StartButtonPressed();
-		gameInputs.Menu.Confirm.performed += _ => confirmEvent.Invoke();
-		gameInputs.Menu.Cancel.performed += _ => cancelEvent.Invoke();
+		gameInputs.Menu.Confirm.performed += ctx => confirmEvent.Invoke(ctx);
+		gameInputs.Menu.Cancel.performed += ctx => cancelEvent.Invoke(ctx);
 		gameInputs.Menu.Direction.performed += ctx => directionEvent.Invoke(ctx);
+		gameInputs.Menu.TakeScreenshot.performed += _ => GameController.TakeScreenshot();
 	}
 
 }

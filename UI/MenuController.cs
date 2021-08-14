@@ -21,17 +21,20 @@ public class MenuController : MonoBehaviour
 	public GameObject menuObj;
 	public RectTransform panel;
 	public GameObject cursor;
+	[SerializeField]
+	GameObject displayWhenOpen;
 
 	[SerializeField]
 	MenuButton[] buttons;
 	[SerializeField]
 	UnityEvent menuClosedEvent;
 
-	const float refreshRate = 0.01f;
+	const float refreshRate = 0.0075f;
 	private WaitForSecondsRealtime refreshWait = new WaitForSecondsRealtime(refreshRate);
 	const float pixelsPerUpdate = 0.125f;
 	readonly Vector2 baseVec = new Vector2(0.5f, 0.5f);
 
+	string menuSelect = "menuSelect";
 	string softBlip = "menuBlipSoft";
 
 	MenuState menuState;
@@ -51,6 +54,9 @@ public class MenuController : MonoBehaviour
 		menuObj.SetActive(true);
 		panel.gameObject.SetActive(true);
 		gameObject.SetActive(true);
+		if(displayWhenOpen != null)
+			displayWhenOpen.SetActive(false);
+		AudioController.instance.PlaySound(menuSelect);
 		StartCoroutine(OpenCoroutine());
 	}
 
@@ -86,8 +92,11 @@ public class MenuController : MonoBehaviour
 			StartCloseMenu();
 			return;
 		}
+		if(displayWhenOpen != null)
+			displayWhenOpen.SetActive(true);
 		UpdateCursorPosition();
-		cursor.SetActive(true);
+		//cursor.SetActive(true);
+		buttons[selectedButton].HighlightButton();
 	}
 
 
@@ -98,8 +107,11 @@ public class MenuController : MonoBehaviour
 		menuState = MenuState.Closing;
 		foreach(MenuButton b in buttons)
 		{
+			b.ClearButton();
 			b.gameObject.SetActive(false);
 		}
+		if(displayWhenOpen != null)
+			displayWhenOpen.SetActive(false);
 		cursor.SetActive(false);
 		StartCoroutine(CloseCoroutine());
 	}
@@ -137,8 +149,11 @@ public class MenuController : MonoBehaviour
 	{
 		foreach(MenuButton b in buttons)
 		{
+			b.ClearButton();
 			b.gameObject.SetActive(false);
 		}
+		if(displayWhenOpen != null)
+			displayWhenOpen.SetActive(false);
 		cursor.SetActive(false);
 		menuState = MenuState.Closed;
 		panel.sizeDelta =  new Vector2(0.5f, 0.5f);
@@ -151,6 +166,7 @@ public class MenuController : MonoBehaviour
 
 	public void MoveCursor(Vector2 input)
 	{
+		
 		if(input.x != 0)
 		{
 			PaletteSelector ps = buttons[selectedButton].GetComponent<PaletteSelector>();
@@ -164,19 +180,22 @@ public class MenuController : MonoBehaviour
 
 		if(input.y < 0)
 		{
+			buttons[selectedButton].ClearButton();
 			do{
 				selectedButton++;
 				selectedButton %= buttons.Length;
 			}while(!buttons[selectedButton].selectable);
-
+			buttons[selectedButton].HighlightButton();
 			UpdateCursorPosition();
 		}
 		if(input.y > 0)
 		{
+			buttons[selectedButton].ClearButton();
 			do{
 				selectedButton += (buttons.Length-1);
 				selectedButton %= buttons.Length;
 			}while(!buttons[selectedButton].selectable);
+			buttons[selectedButton].HighlightButton();
 			UpdateCursorPosition();
 		}
 		AudioController.instance.PlaySound(softBlip);
@@ -184,8 +203,8 @@ public class MenuController : MonoBehaviour
 
 	void UpdateCursorPosition()
 	{
-		Vector3 pos = buttons[selectedButton].GetComponent<RectTransform>().localPosition;
-		cursor.GetComponent<RectTransform>().localPosition = pos;
+		//Vector3 pos = buttons[selectedButton].GetComponent<RectTransform>().localPosition;
+		//cursor.GetComponent<RectTransform>().localPosition = pos;
 	}
 
 	int GetFirstSelectableItem()
@@ -200,7 +219,7 @@ public class MenuController : MonoBehaviour
 
 	public void SelectButton(){
 		buttons[selectedButton].ExecuteButton();
-		AudioController.instance.PlaySound("menuSelect");
+		AudioController.instance.PlaySound(menuSelect);
 	}
 
 	

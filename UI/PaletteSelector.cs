@@ -6,10 +6,12 @@ public class PaletteSelector : MonoBehaviour
 {
 	[SerializeField]
 	PaletteSprite paletteSprite;
+	[SerializeField][Range(0,1)]
+	int playerID;
 
 	public PaletteIndex currentPalette;
 
-	const int numPalettes = 6;
+	const int numPalettes = (int)PaletteIndex.NUMPALETTES;
 	const int palOffset = 1;
 
 	private void Awake() {
@@ -32,5 +34,10 @@ public class PaletteSelector : MonoBehaviour
 	public PaletteIndex GetPalette()
 	{
 		return currentPalette;
+	}
+
+	private void OnEnable() {
+		PaletteIndex pal = (playerID == 0) ? GameController.GetPaletteP1() : GameController.GetPaletteP2();
+		SetPalette(pal);
 	}
 }

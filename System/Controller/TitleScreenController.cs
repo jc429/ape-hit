@@ -20,10 +20,13 @@ public class TitleScreenController : GameModeController
 
 
 
-	protected override void StartButtonPressed()
+	protected override void StartButtonPressed(InputAction.CallbackContext ctx)
 	{
-		HideTitleOverlay();
-		pauseMenu.StartOpenMenu();
+		if(pauseMenu.GetMenuState() == MenuState.Closed)
+		{
+			HideTitleOverlay();
+			pauseMenu.StartOpenMenu();
+		}
 	}
 	
 	

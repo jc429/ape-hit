@@ -126,7 +126,11 @@ public class PlayerMovement : MonoBehaviour
 		return grounded;
 	}
 
-	
+	public void ForceNotGrounded()
+	{
+		grounded = false;
+	}
+
 	/// Locks ///
 
 	public bool MovementLocked()

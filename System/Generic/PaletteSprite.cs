@@ -8,12 +8,17 @@ public enum PaletteIndex{
 	Player2		= 2,
 	Gray		= 1,
 	Brown		= 2,
-	Green		= 3,
-	Red			= 4,
-	Purple		= 5,
-	Blue		= 6,
+	Red			= 3,
+	Citrus		= 4,
+	Banana		= 5,
+	Melon		= 6,
+	Jungle		= 7,
+	Aqua		= 8,
+	Grape		= 9,
+	Lavender	= 10,
 	Natural		= 14,
 	RedRamp		= 15,
+	NUMPALETTES	= 10
 }
 
 
@@ -59,6 +64,11 @@ public class PaletteSprite : MonoBehaviour
 	public void SetPalette(PaletteIndex index){
 		Texture2D colorSwapTex;
 		colorSwapTex = paletteTex;
+		if(colorSwapTex == null)
+		{
+			Debug.Log("No texture found!" + this.gameObject);
+			return;
+		}
 		for (int i = 0; i < colorSwapTex.width; ++i){
 			Color c = colorSwapTex.GetPixel(i,(2 * (int)index) + 1);
 			colorSwapTex.SetPixel(i, 0, c);

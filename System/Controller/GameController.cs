@@ -128,4 +128,13 @@ public class GameController : MonoBehaviour
 	{
 		return player2Pal;
 	}
+
+
+	public static void TakeScreenshot()
+	{
+		string time = System.DateTime.Now.ToString("yyyy'-'MM'-'dd'--'HH'-'mm'-'ss");
+		string path = System.IO.Path.Combine(Application.dataPath, "../Export/screenshot " + time + ".png");
+		ScreenCapture.CaptureScreenshot(path);
+		Debug.Log("Screen capture saved! " + path);
+	}
 }

@@ -90,29 +90,43 @@ public class GameModeController : MonoBehaviour
 	[SerializeField]
 	protected PaletteSelector[] paletteSelectors;
 
+	const float holdThreshold = 1f;
+	bool pauseDown = false;
+	protected float pauseInputHoldTime = 0;
 
-	public void ConfirmButtonPressed()
+	public void ConfirmButtonPressed(InputAction.CallbackContext ctx)
 	{
-		if(optionsMenu.GetMenuState() == MenuState.Open)
+		if(ctx.performed && optionsMenu.GetMenuState() == MenuState.Open)
 		{
 			optionsMenu.SelectButton();
 		}
-		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		else if(ctx.performed && optionsMenu.GetMenuState() == MenuState.Closed && pauseMenu.GetMenuState() == MenuState.Open)
 		{
 			pauseMenu.SelectButton();
 		}
-		else{
-			StartButtonPressed();
+		else if(ctx.performed)
+		{
+			StartButtonPressed(ctx);
+			PausePressed();
+		}
+		if(ctx.started)
+		{
+		}
+		if(ctx.canceled)
+		{
+			PauseReleased();
 		}
 	}
 	
-	public void CancelButtonPressed()
+	public void CancelButtonPressed(InputAction.CallbackContext ctx)
 	{
-		if(optionsMenu.GetMenuState() == MenuState.Open)
+		if(ctx.canceled)
+			return;
+		if(ctx.performed && optionsMenu.GetMenuState() == MenuState.Open)
 		{
 			optionsMenu.StartCloseMenu();
 		}
-		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		else if(ctx.performed && optionsMenu.GetMenuState() == MenuState.Closed && pauseMenu.GetMenuState() == MenuState.Open)
 		{
 			pauseMenu.StartCloseMenu();
 		}
@@ -120,18 +134,45 @@ public class GameModeController : MonoBehaviour
 
 	public void DirectionPressed(InputAction.CallbackContext ctx)
 	{
+		if(!ctx.performed)
+			return;
 		if(optionsMenu.GetMenuState() == MenuState.Open)
 		{
 			optionsMenu.MoveCursor(ctx.ReadValue<Vector2>());
 		}
-		else if(pauseMenu.GetMenuState() == MenuState.Open)
+		else if(optionsMenu.GetMenuState() == MenuState.Closed && pauseMenu.GetMenuState() == MenuState.Open)
 		{
 			pauseMenu.MoveCursor(ctx.ReadValue<Vector2>());
 		}
 	}
 
-	protected virtual void StartButtonPressed(){}
+	protected virtual void StartButtonPressed(InputAction.CallbackContext ctx){}
+	protected virtual void StartButtonLongPress(){}
 
+	void PausePressed()
+	{
+		pauseDown = true;
+		pauseInputHoldTime = 0;
+	}
+
+	void PauseReleased()
+	{
+		pauseDown = false;
+		pauseInputHoldTime = 0;
+	}
+
+	private void Update() {
+		if(pauseDown)
+		{
+			pauseInputHoldTime += Time.deltaTime;
+			if(pauseInputHoldTime >= holdThreshold)
+			{
+				pauseDown = false;
+				pauseInputHoldTime = 0;
+				StartButtonLongPress();
+			}
+		}
+	}
 
 	/// Palette Swapping ///
 

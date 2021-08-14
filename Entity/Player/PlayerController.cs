@@ -95,6 +95,7 @@ public class PlayerController : EntityController, IHitboxResponder
 				stunTimer = 0;
 				RemoveInputLock(InputLockType.HitStun);
 				_playerMovement.RemoveMoveLock(MoveLockType.HitStun);
+				_playerMovement.GroundCheck();
 			}
 		}
 		else
@@ -146,6 +147,8 @@ public class PlayerController : EntityController, IHitboxResponder
 		{
 			if(moveInputs.y < 0)
 				SetActionState(ActionState.Uppercut);
+			else if(!_playerMovement.IsGrounded())
+				SetActionState(ActionState.AirLight);
 			else
 				SetActionState(ActionState.LightPunch);
 		}
@@ -158,6 +161,8 @@ public class PlayerController : EntityController, IHitboxResponder
 			CancelAttackRecovery();
 			if(moveInputs.y < 0)
 				SetActionState(ActionState.Lariat);
+			else if(!_playerMovement.IsGrounded())
+				SetActionState(ActionState.AirHeavy);
 			else
 				SetActionState(ActionState.HeavyPunch);
 		}
@@ -176,6 +181,7 @@ public class PlayerController : EntityController, IHitboxResponder
 		SetActionState(ActionState.HitStun);
 		_playerMovement.RemoveMoveLock(MoveLockType.Animation);
 		_playerMovement.AddMoveLock(MoveLockType.HitStun);
+		_playerMovement.ForceNotGrounded();
 		Vector3 launchVel = Vector3.Normalize(hit.knockbackAngle) * hit.knockbackForce;
 		launchVel.x *= hit.attacker.GetFacing().ToInt();
 		GetComponent<Rigidbody>().velocity = launchVel;
@@ -266,6 +272,20 @@ public class PlayerController : EntityController, IHitboxResponder
 			PerformHeavyAttack();
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	WaitForSeconds aiTickWait = new WaitForSeconds(0.75f);
 	Coroutine aiController;
 	public void StartAIController()
@@ -323,13 +343,13 @@ public class PlayerController : EntityController, IHitboxResponder
 						SetActionState(ActionState.Lariat);
 						break;
 					case 2:
-						SetActionState(ActionState.HeavyPunch);
+						SetActionState(_playerMovement.IsGrounded() ? ActionState.HeavyPunch : ActionState.AirHeavy);
 						break;
 					case 1:
 						SetActionState(ActionState.Uppercut);
 						break;
 					case 0:
-						SetActionState(ActionState.LightPunch);
+						SetActionState(_playerMovement.IsGrounded() ? ActionState.LightPunch : ActionState.AirLight);
 						break;
 					default:
 						break;

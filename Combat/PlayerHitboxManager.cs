@@ -8,6 +8,17 @@ enum HurtboxID
 	Head = 1
 }
 
+public enum AttackID
+{
+	LightPunch = 0,
+	HeavyPunch = 1,
+	Uppercut = 2,
+	Lariat = 3,
+	AirLight = 4,
+	AirHeavy = 5,
+}
+
+
 public class PlayerHitboxManager : MonoBehaviour
 {
 	
@@ -60,6 +71,11 @@ public class PlayerHitboxManager : MonoBehaviour
 				hurtboxes[(int)HurtboxID.Body].SetHurtboxInfo(0.0f, -0.1f, 1.0f, 0.8f);
 				hurtboxes[(int)HurtboxID.Head].SetHurtboxInfo(0.0f, 0.5f, 0.4f, 0.4f);
 				break;
+			case ActionState.AirLight:
+			case ActionState.AirHeavy:
+				hurtboxes[(int)HurtboxID.Body].SetHurtboxInfo(0.0f, 0.0f, 0.6f, 0.8f);
+				hurtboxes[(int)HurtboxID.Head].SetHurtboxInfo(0.0f, 0.0f, 0.4f, 0.4f);
+				break;
 			default:
 				DisableAllHurtboxes();
 				break;
@@ -98,6 +114,16 @@ public class PlayerHitboxManager : MonoBehaviour
 			case AttackID.Lariat:
 				hitboxes[0].SetHitboxInfo(0.0f, 0.3f, 2f, 0.4f);
 				hitboxes[0].SetHitInfo(2, 20, 6f, new Vector2(1,0.1f));
+				hitboxes[0].SetHitboxActive();
+				break;
+			case AttackID.AirLight:
+				hitboxes[0].SetHitboxInfo(0.25f, 0.2f, 1f, 0.8f);
+				hitboxes[0].SetHitInfo(1, 15, 3f, new Vector2(1,1f));
+				hitboxes[0].SetHitboxActive();
+				break;
+			case AttackID.AirHeavy:
+				hitboxes[0].SetHitboxInfo(0.25f, -0.4f, 1f, 0.8f);
+				hitboxes[0].SetHitInfo(2, 25, 4f, new Vector2(1,1f));
 				hitboxes[0].SetHitboxActive();
 				break;
 			default:
