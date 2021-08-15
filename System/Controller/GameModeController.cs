@@ -91,8 +91,6 @@ public class GameModeController : MonoBehaviour
 	protected PaletteSelector[] paletteSelectors;
 
 	const float holdThreshold = 0.5f;
-	bool pauseDown = false;
-	protected float pauseInputHoldTime = 0;
 
 	public void ConfirmButtonPressed(InputAction.CallbackContext ctx)
 	{

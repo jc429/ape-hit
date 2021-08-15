@@ -37,7 +37,7 @@ public class PaletteSprite : MonoBehaviour
 //	public Texture2D
 
 	// Start is called before the first frame update
-	void Awake() {
+	void OnEnable() {
 		InitPaletteTex();
 		SetPalette(pIndex);
 	}
@@ -62,19 +62,18 @@ public class PaletteSprite : MonoBehaviour
 	}
 
 	public void SetPalette(PaletteIndex index){
-		Texture2D colorSwapTex;
-		colorSwapTex = paletteTex;
-		if(colorSwapTex == null)
+		if(paletteTex == null)
 		{
-			Debug.Log("No texture found!" + this.gameObject);
-			return;
+			paletteTex = (Texture2D)_spriteRenderer.material.GetTexture("_SwapTex");
 		}
+		Texture2D colorSwapTex = paletteTex;
 		for (int i = 0; i < colorSwapTex.width; ++i){
 			Color c = colorSwapTex.GetPixel(i,(2 * (int)index) + 1);
 			colorSwapTex.SetPixel(i, 0, c);
 		}
 		colorSwapTex.Apply();
 		_spriteRenderer.material.SetTexture("_SwapTex", colorSwapTex);
+		paletteTex = colorSwapTex;
 	}
 
 	public void SwapColor(int index, Color color){
